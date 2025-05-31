@@ -31,7 +31,9 @@
       margin-bottom: 20px;
     }
 
-    input, button {
+    input[type="text"],
+    input[type="file"],
+    button {
       padding: 10px;
       font-size: 16px;
       border: none;
@@ -39,6 +41,12 @@
       margin: 5px 0;
       width: 100%;
       max-width: 400px;
+    }
+
+    .slider-container {
+      margin: 10px 0;
+      color: #ccc;
+      font-size: 14px;
     }
 
     .result {
@@ -64,13 +72,27 @@
       flex-direction: column;
       align-items: center;
     }
+
+    .top-label {
+      font-size: 18px;
+      color: #ccc;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
-  <div class="overlay">
+  <div class="overlay" id="overlay">
+    <div class="top-label">Зроблено для 27 ДПРЧ</div>
     <h1>Пошук по базі питань</h1>
+    
     <input type="file" id="fileInput">
     <input type="text" id="search" placeholder="Введіть текст для пошуку...">
+
+    <div class="slider-container">
+      <label for="blurRange">Розмиття фону: <span id="blurValue">6</span>px</label><br>
+      <input type="range" id="blurRange" min="0" max="20" step="1" value="6">
+    </div>
+
     <div id="results"></div>
   </div>
 
@@ -112,6 +134,12 @@
           resultsDiv.innerHTML = '<div class="result">Нічого не знайдено</div>';
         }
       }
+    });
+
+    document.getElementById('blurRange').addEventListener('input', function() {
+      const value = this.value;
+      document.getElementById('blurValue').textContent = value;
+      document.getElementById('overlay').style.backdropFilter = `blur(${value}px)`;
     });
   </script>
 </body>
