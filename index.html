@@ -15,7 +15,7 @@
     }
 
     .overlay {
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px); /* Постійне розмиття */
       background-color: rgba(0, 0, 0, 0.6);
       min-height: 100vh;
       padding: 20px;
@@ -33,7 +33,8 @@
 
     input[type="text"],
     input[type="file"],
-    button {
+    button,
+    select {
       padding: 10px;
       font-size: 16px;
       border: none;
@@ -41,12 +42,6 @@
       margin: 5px 0;
       width: 100%;
       max-width: 400px;
-    }
-
-    .slider-container {
-      margin: 10px 0;
-      color: #ccc;
-      font-size: 14px;
     }
 
     .result {
@@ -84,29 +79,50 @@
   <div class="overlay" id="overlay">
     <div class="top-label">Зроблено для 27 ДПРЧ</div>
     <h1>Пошук по базі питань</h1>
-    
-    <input type="file" id="fileInput">
+
+    <select id="sourceSelect">
+      <option value="default">Використати qa_result.json</option>
+      <option value="custom">Завантажити свій файл</option>
+    </select>
+
+    <input type="file" id="fileInput" style="display:none;">
     <input type="text" id="search" placeholder="Введіть текст для пошуку...">
-
-    <div class="slider-container">
-      <label for="blurRange">Розмиття фону: <span id="blurValue">6</span>px</label><br>
-      <input type="range" id="blurRange" min="0" max="20" step="1" value="6">
-    </div>
-
     <div id="results"></div>
   </div>
 
   <script>
     let data = [];
 
-    document.getElementById('fileInput').addEventListener('change', function(event) {
+    const fileInput = document.getElementById('fileInput');
+    const sourceSelect = document.getElementById('sourceSelect');
+
+    sourceSelect.addEventListener('change', function () {
+      if (this.value === 'custom') {
+        fileInput.style.display = 'block';
+        data = [];
+      } else {
+        fileInput.style.display = 'none';
+        fetch('qa_result.json')
+          .then(response => response.json())
+          .then(json => {
+            data = json;
+            alert('qa_result.json успішно завантажено!');
+          })
+          .catch(error => {
+            alert('Не вдалося завантажити qa_result.json');
+            console.error(error);
+          });
+      }
+    });
+
+    fileInput.addEventListener('change', function (event) {
       const file = event.target.files[0];
       const reader = new FileReader();
 
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         try {
           data = JSON.parse(e.target.result);
-          alert('Файл успішно завантажено!');
+          alert('Ваш файл успішно завантажено!');
         } catch (error) {
           alert('Помилка читання файлу. Перевірте формат JSON.');
         }
@@ -115,7 +131,7 @@
       reader.readAsText(file);
     });
 
-    document.getElementById('search').addEventListener('input', function() {
+    document.getElementById('search').addEventListener('input', function () {
       const query = this.value.toLowerCase();
       const resultsDiv = document.getElementById('results');
       resultsDiv.innerHTML = '';
@@ -126,7 +142,7 @@
           const block = document.createElement('div');
           block.className = 'result';
           block.innerHTML = `<div class="question">Питання: ${item.question}</div>
-                              <div class="answer">Відповідь: ${item.answer}</div>`;
+                             <div class="answer">Відповідь: ${item.answer}</div>`;
           resultsDiv.appendChild(block);
         });
 
@@ -136,11 +152,10 @@
       }
     });
 
-    document.getElementById('blurRange').addEventListener('input', function() {
-      const value = this.value;
-      document.getElementById('blurValue').textContent = value;
-      document.getElementById('overlay').style.backdropFilter = `blur(${value}px)`;
-    });
+    window.onload = () => {
+      sourceSelect.value = 'default';
+      sourceSelect.dispatchEvent(new Event('change'));
+    };
   </script>
 </body>
 </html>
